@@ -19,6 +19,14 @@ kotlin {
 
     jvm()
 
+    mingwX64 {
+        binaries {
+            sharedLib {
+                baseName = "FeltnerAINativeShared"
+            }
+        }
+    }
+
     listOf(
         iosX64(),
         iosArm64(),
@@ -54,6 +62,10 @@ kotlin {
 
         jvmMain.dependencies {
             implementation(libs.ktor.client.okhttp)
+        }
+
+        mingwX64Main.dependencies {
+            implementation(libs.ktor.client.winhttp)
         }
 
         appleMain.dependencies {

@@ -13,6 +13,11 @@ captures/
 *.klib
 kotlin-js-store/
 
+# .NET / WinUI
+bin/
+obj/
+*.user
+
 # macOS / Xcode
 .DS_Store
 xcuserdata/

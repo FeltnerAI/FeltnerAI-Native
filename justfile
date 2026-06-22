@@ -1,80 +1,123 @@
-set windows-shell := ["powershell.exe", "-NoLogo", "-Command"]
+set windows-shell := ["powershell.exe", "-NoLogo", "-NoProfile", "-Command"]
 
-gradle := "./scripts/gradle-with-jdk.sh"
+gradle := if os_family() == "windows" { "powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File ./scripts/gradle-with-jdk.ps1" } else { "./scripts/gradle-with-jdk.sh" }
+android_dev := if os_family() == "windows" { "powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File ./scripts/dev-android.ps1" } else { "./scripts/dev-android.sh" }
+host_clean := if os_family() == "windows" { "dotnet clean windowsApp/FeltnerAINative.Windows.csproj -p:Platform=x64" } else { ":" }
+windows_project := "windowsApp/FeltnerAINative.Windows.csproj"
+windows_debug_exe := ".\\windowsApp\\bin\\x64\\Debug\\net8.0-windows10.0.19041.0\\win-x64\\FeltnerAINative.Windows.exe"
 
-default:
+[group('tools')]
+default: list
+
+# List available recipes.
+[group('tools')]
+list:
     @just --list
 
-# --- Dev: run the app on a target -----------------------------------------
+# Format this justfile.
+[group('tools')]
+fmt:
+    just --fmt
+
+# Check justfile formatting.
+[group('tools')]
+fmt-check:
+    just --fmt --check
+
+# Clean build outputs for this host.
+[group('tools')]
+clean:
+    {{ gradle }} clean
+    {{ host_clean }}
+
+# --- Dev: build, install, and run a native target -------------------------
 
 [group('dev')]
 dev-android:
-    ./scripts/dev-android.sh
+    {{ android_dev }}
 
-# Builds, installs, and launches the app on an iPhone Simulator.
 [group('dev')]
+[macos]
 dev-ios:
     ./scripts/dev-ios-simulator.sh
 
-# Builds and opens the macOS app.
 [group('dev')]
+[macos]
 dev-macos:
     ./scripts/dev-macos.sh
 
 [group('dev')]
-android: dev-android
+[windows]
+dev-windows: build-windows-debug
+    & {{ windows_debug_exe }}
 
-[group('dev')]
-ios: dev-ios
-
-[group('dev')]
-macos: dev-macos
-
-# --- Build: produce real artifacts ----------------------------------------
+# --- Build: produce artifacts and run validation --------------------------
 
 # Run the shared Kotlin test suite.
 [group('build')]
 test-shared:
-    {{gradle}} :shared:allTests
-
-[group('build')]
-build-shared:
-    {{gradle}} :shared:allTests
+    {{ gradle }} :shared:allTests
 
 [group('build')]
 build-android-debug:
-    {{gradle}} :androidApp:assembleDebug
+    {{ gradle }} :androidApp:assembleDebug
 
 [group('build')]
 build-android:
-    {{gradle}} :androidApp:assembleRelease
+    {{ gradle }} :androidApp:assembleRelease
 
 [group('build')]
+[macos]
 build-ios-frameworks:
-    {{gradle}} :shared:linkReleaseFrameworkIosArm64 :shared:linkReleaseFrameworkIosSimulatorArm64
+    {{ gradle }} :shared:linkReleaseFrameworkIosArm64 :shared:linkReleaseFrameworkIosSimulatorArm64
 
 [group('build')]
+[macos]
 build-macos-frameworks:
-    {{gradle}} :shared:linkReleaseFrameworkMacosArm64 :shared:linkReleaseFrameworkMacosX64
+    {{ gradle }} :shared:linkReleaseFrameworkMacosArm64 :shared:linkReleaseFrameworkMacosX64
 
 [group('build')]
+[windows]
+build-windows-native-shared:
+    {{ gradle }} :shared:linkReleaseSharedMingwX64
+
+[group('build')]
+[windows]
+build-windows-debug:
+    dotnet build {{ windows_project }} --configuration Debug -p:Platform=x64
+
+[group('build')]
+[windows]
+build-windows:
+    dotnet build {{ windows_project }} --configuration Release -p:Platform=x64
+
+[group('build')]
+[macos]
 build-apple-frameworks:
-    {{gradle}} :shared:linkReleaseFrameworkIosArm64 :shared:linkReleaseFrameworkIosSimulatorArm64 :shared:linkReleaseFrameworkMacosArm64 :shared:linkReleaseFrameworkMacosX64
+    {{ gradle }} :shared:linkReleaseFrameworkIosArm64 :shared:linkReleaseFrameworkIosSimulatorArm64 :shared:linkReleaseFrameworkMacosArm64 :shared:linkReleaseFrameworkMacosX64
 
 [group('build')]
+[macos]
 build-ios:
     xcodebuild -project appleApp/FeltnerAINative.xcodeproj -scheme FeltnerAI-Native -configuration Debug -destination 'generic/platform=iOS Simulator' -derivedDataPath appleApp/build/DerivedData build
 
 [group('build')]
+[macos]
 build-macos:
     xcodebuild -project appleApp/FeltnerAINative.xcodeproj -scheme FeltnerAI-Native-macOS -configuration Debug -destination 'platform=macOS' -derivedDataPath appleApp/build/DerivedData build CODE_SIGNING_ALLOWED=NO
 
 [group('build')]
-build-all: build-shared build-android-debug build-ios build-macos
+[windows]
+build-all: test-shared build-android-debug build-windows-debug
 
 [group('build')]
-build-release-all: build-shared build-android build-apple-frameworks
+[macos]
+build-all: test-shared build-android-debug build-ios build-macos
 
 [group('build')]
-clean:
-    {{gradle}} clean
+[windows]
+build-release-all: test-shared build-android build-windows
+
+[group('build')]
+[macos]
+build-release-all: test-shared build-android build-apple-frameworks
