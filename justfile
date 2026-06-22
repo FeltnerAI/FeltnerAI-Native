@@ -16,6 +16,11 @@ desktop:
 android:
     {{gradlew}} :composeApp:installDebug
 
+# Builds, installs, and launches the app on an iPhone Simulator.
+[group('dev')]
+dev-ios:
+    ./scripts/dev-ios-simulator.sh
+
 # --- Build: produce real artifacts ----------------------------------------
 
 # Native desktop installer (.msi / .dmg / .deb) for the current OS.

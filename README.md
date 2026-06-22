@@ -62,7 +62,7 @@ target provides.
 
 ## Prerequisites
 
-- JDK 17+
+- JDK 17+ (JDK 17 or 21 recommended for the current Gradle/Kotlin tooling)
 - Android: Android SDK (set via `local.properties` or `ANDROID_HOME`)
 - iOS: macOS with Xcode 15+ (the Kotlin framework only builds on macOS)
 
@@ -85,6 +85,15 @@ Create `local.properties` with `sdk.dir=/path/to/Android/sdk`, then:
 ```
 
 ### iOS (macOS only)
+Run the debug app on an iPhone Simulator:
+```bash
+just dev-ios
+```
+To target a specific simulator:
+```bash
+IOS_SIMULATOR="iPhone 15" just dev-ios
+```
+
 Open `iosApp/iosApp.xcodeproj` in Xcode, set your signing **Team**, and Run.
 The "Compile Kotlin Framework" build phase invokes
 `./gradlew :composeApp:embedAndSignAppleFrameworkForXcode` automatically.
