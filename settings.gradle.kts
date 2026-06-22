@@ -1,4 +1,4 @@
-rootProject.name = "FeltnerAIPortal"
+rootProject.name = "FeltnerAI-Native"
 
 pluginManagement {
     repositories {
@@ -27,4 +27,5 @@ dependencyResolutionManagement {
     }
 }
 
-include(":composeApp")
+include(":shared")
+include(":androidApp")

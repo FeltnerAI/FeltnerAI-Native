@@ -2,12 +2,12 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-PROJECT_PATH="${IOS_PROJECT_PATH:-$ROOT_DIR/iosApp/iosApp.xcodeproj}"
-SCHEME="${IOS_SCHEME:-iosApp}"
+PROJECT_PATH="${IOS_PROJECT_PATH:-$ROOT_DIR/appleApp/FeltnerAINative.xcodeproj}"
+SCHEME="${IOS_SCHEME:-FeltnerAI-Native}"
 CONFIGURATION="${IOS_CONFIGURATION:-Debug}"
-BUNDLE_ID="${IOS_BUNDLE_ID:-ai.feltner.portal}"
-APP_NAME="${IOS_APP_NAME:-FeltnerAI Portal.app}"
-DERIVED_DATA_PATH="${IOS_DERIVED_DATA_PATH:-$ROOT_DIR/iosApp/build/DerivedData}"
+BUNDLE_ID="${IOS_BUNDLE_ID:-ai.feltner.nativeapp}"
+APP_NAME="${IOS_APP_NAME:-FeltnerAI-Native.app}"
+DERIVED_DATA_PATH="${IOS_DERIVED_DATA_PATH:-$ROOT_DIR/appleApp/build/DerivedData}"
 
 if [[ "$(uname)" != "Darwin" ]]; then
   echo "dev-ios requires macOS with Xcode installed." >&2

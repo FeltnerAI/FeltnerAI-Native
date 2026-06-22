@@ -1,6 +1,6 @@
 set windows-shell := ["powershell.exe", "-NoLogo", "-Command"]
 
-gradlew := if os_family() == "windows" { "./gradlew.bat" } else { "./gradlew" }
+gradle := "./scripts/gradle-with-jdk.sh"
 
 default:
     @just --list
@@ -8,36 +8,73 @@ default:
 # --- Dev: run the app on a target -----------------------------------------
 
 [group('dev')]
-desktop:
-    {{gradlew}} :composeApp:run
-
-# Installs and launches the debug build on a connected device/emulator.
-[group('dev')]
-android:
-    {{gradlew}} :composeApp:installDebug
+dev-android:
+    ./scripts/dev-android.sh
 
 # Builds, installs, and launches the app on an iPhone Simulator.
 [group('dev')]
 dev-ios:
     ./scripts/dev-ios-simulator.sh
 
+# Builds and opens the macOS app.
+[group('dev')]
+dev-macos:
+    ./scripts/dev-macos.sh
+
+[group('dev')]
+android: dev-android
+
+[group('dev')]
+ios: dev-ios
+
+[group('dev')]
+macos: dev-macos
+
 # --- Build: produce real artifacts ----------------------------------------
 
-# Native desktop installer (.msi / .dmg / .deb) for the current OS.
+# Run the shared Kotlin test suite.
 [group('build')]
-build-desktop:
-    {{gradlew}} :composeApp:packageDistributionForCurrentOS
+test-shared:
+    {{gradle}} :shared:allTests
+
+[group('build')]
+build-shared:
+    {{gradle}} :shared:allTests
+
+[group('build')]
+build-android-debug:
+    {{gradle}} :androidApp:assembleDebug
 
 [group('build')]
 build-android:
-    {{gradlew}} :composeApp:assembleRelease
+    {{gradle}} :androidApp:assembleRelease
 
-# Builds the Kotlin framework for iOS (device). Linking the .app and signing
-# happen in Xcode (iosApp/) on macOS.
+[group('build')]
+build-ios-frameworks:
+    {{gradle}} :shared:linkReleaseFrameworkIosArm64 :shared:linkReleaseFrameworkIosSimulatorArm64
+
+[group('build')]
+build-macos-frameworks:
+    {{gradle}} :shared:linkReleaseFrameworkMacosArm64 :shared:linkReleaseFrameworkMacosX64
+
+[group('build')]
+build-apple-frameworks:
+    {{gradle}} :shared:linkReleaseFrameworkIosArm64 :shared:linkReleaseFrameworkIosSimulatorArm64 :shared:linkReleaseFrameworkMacosArm64 :shared:linkReleaseFrameworkMacosX64
+
 [group('build')]
 build-ios:
-    {{gradlew}} :composeApp:linkReleaseFrameworkIosArm64
+    xcodebuild -project appleApp/FeltnerAINative.xcodeproj -scheme FeltnerAI-Native -configuration Debug -destination 'generic/platform=iOS Simulator' -derivedDataPath appleApp/build/DerivedData build
+
+[group('build')]
+build-macos:
+    xcodebuild -project appleApp/FeltnerAINative.xcodeproj -scheme FeltnerAI-Native-macOS -configuration Debug -destination 'platform=macOS' -derivedDataPath appleApp/build/DerivedData build CODE_SIGNING_ALLOWED=NO
+
+[group('build')]
+build-all: build-shared build-android-debug build-ios build-macos
+
+[group('build')]
+build-release-all: build-shared build-android build-apple-frameworks
 
 [group('build')]
 clean:
-    {{gradlew}} clean
+    {{gradle}} clean
